@@ -252,6 +252,16 @@
         {{ form | payment_button }}
         {% endif %}
 
+        <div
+          id="brauz-find-in-store-config-product-page"
+          data-sd="{{ shop.permanent_domain }}"
+          data-cvi="{{ product.first_available_variant.id }}"
+          data-hodv="{{ product.has_only_default_variant }}"
+          style="display: none; width: 0"
+        ></div>
+        <div id="brauz-find-in-store-product-page" style="width: 100%"></div>
+        <script src="https://d3aq2u4yw77ivo.cloudfront.net/find-in-store/shopify/cpap/find-in-store.shopify.cpap.prod.js" async></script>
+
         <div class="product-form__error-message-wrapper product-form__error-message-wrapper--hidden" data-error-message-wrapper role="alert">
           {% include 'icon-error' %} <span class="product-form__error-message" data-error-message>{{ 'products.product.quantity_minimum_message' | t }}</span>
         </div>
