@@ -1,0 +1,956 @@
+<header class="collection-header">
+  {% include 'breadcrumbs' %}
+</header>
+<div class="product-template__container"
+     id="ProductSection-{{ section.id }}"
+     data-section-id="{{ section.id }}"
+     data-section-type="product"
+     data-enable-history-state="true"
+     >
+  {% comment %}
+  Get first variant, or deep linked one
+  {% endcomment %}
+  {%- assign current_variant = product.selected_or_first_available_variant -%}
+  {%- assign product_image_zoom_size = '1024x1024' -%}
+  {%- assign product_image_scale = '2' -%}
+  {%- assign enable_zoom = section.settings.enable_zoom -%}
+  {%- assign compare_at_price = current_variant.compare_at_price -%}
+  {%- assign price = current_variant.price -%}
+
+  {% case section.settings.image_size %}
+  {% when 'small' %}
+  {%- assign product_image_width = 'medium-up--one-third' -%}
+  {%- assign product_description_width = 'medium-up--two-thirds' -%}
+  {%- assign product_thumbnail_width = 'medium-up--one-third' -%}
+  {%- assign height = 345 -%}
+  {% when 'medium' %}
+  {%- assign product_image_width = 'medium-up--one-half' -%}
+  {%- assign product_description_width = 'medium-up--one-half' -%}
+  {%- assign product_thumbnail_width = 'medium-up--one-quarter' -%}
+  {%- assign height = 600 -%}
+  {% when 'large' %}
+  {%- assign product_image_width = 'medium-up--two-thirds' -%}
+  {%- assign product_description_width = 'medium-up--one-third' -%}
+  {%- assign product_thumbnail_width = 'medium-up--one-fifth' -%}
+  {%- assign height = 720 -%}
+  {% when 'full' %}
+  {%- assign product_image_width = '' -%}
+  {%- assign product_description_width = '' -%}
+  {%- assign product_thumbnail_width = 'medium-up--one-eighth' -%}
+  {%- assign height = 1090 -%}
+  {%- assign enable_zoom = false -%}
+  {% endcase %}
+
+  {% assign total = 0 %}
+  {%for variant in product.variants %}
+
+  {% capture i %}{{ total | plus:variant.inventory_quantity }}{%endcapture%}
+  {% assign total = i | plus: 0 %}
+
+  {%endfor%}
+  <div class="page-width clearfix product-single{% if section.settings.enable_payment_button %} product-single--{{ section.settings.image_size }}-image{% endif %}{% if product.has_only_default_variant %} product_simple {% endif %}">
+
+    <div class="grid__item_left grid__item product-single__photos {{ product_image_width }}{% if section.settings.image_size == 'full' %} product-single__photos--full{% endif %}">
+      <div class="display_onmobile">
+        <p class="product-single_sku">SKU: {{ product.variants.first.sku }}</p>
+
+   
+          <div class="product-single__title">{{ product.title }}</div>
+ 
+
+        <div class="product__price">
+          {% include 'product-price-custom-product', variant: current_variant %}
+        </div>
+        <!-- TrustBox widget - Product Mini -->
+          <div class="trustpilot-widget" data-locale="en-US" data-template-id="54d39695764ea907c0f34825" data-businessunit-id="5a9fb3f0d2916f0001353e51" data-style-height="24px" data-style-width="100%" data-theme="light" data-sku="{{ product.variants.first.sku }}" data-no-reviews="hide" data-scroll-to-list="true">
+          <a href="https://www.trustpilot.com/review/cpapvictoria.com.au" target="_blank" rel="noopener">Trustpilot</a>
+          </div>
+        <!-- End TrustBox widget -->
+        {% if product.metafields.accentuate.short_description != "" %}
+        <div class="product_short">
+          {{ product.metafields.accentuate.short_description }} <a href="#product_content"> More Info</a>
+        </div>
+        {% endif %}
+        {% comment %}
+        <span class="availability_status total-qty-{{ total }}">
+          Availability: 
+          {% if product.available %}
+            {% if total <= 5 and total > 0 %}
+            <span class="inf">Low Stock</span>
+            {% else %}
+            <span class="inf">In Stock</span>
+            {% endif %}
+          {% else %}
+            <span class="inf">Out of Stock</span>
+          {% endif %}
+        </span>
+        {% endcomment %}
+      </div>
+      {%- assign featured_image = product.selected_or_first_available_variant.featured_image | default: product.featured_image -%}
+      {% if product.images.size > 0 %}
+      <div class="slide_product_slick_left thumbnails-wrapper{% if enable_thumbnail_slides == true %} thumbnails-slider--active{% endif %}">
+        <ul class="slick_carousel_product">
+          {% for image in product.images %}
+          <li class=" product-single__thumbnails-item js {% if product.images.size > 5 and forloop.index > 5 %}js-slick{% endif %}">
+            <a href="{{ image.src | img_url: product_image_zoom_size, scale: product_image_scale }}"
+               class="product-single__thumbnail--{{ section.id }}"
+               data-thumbnail-id="{{ image.id }}"
+               {% if enable_zoom %}data-zoom="{{ image.src | img_url: product_image_zoom_size, scale: product_image_scale }}"{% endif %}>
+                <img src="{{ image.src | img_url: '110x110', scale: 2 }}" alt="{{ 'sections.featured_product.gallery_thumbnail_alt' | t: imageAlt: image.alt | escape }}">
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <ul class="slide_product_slick_right slider_right">
+        {% for image in product.images %}
+          <li class="img_big_product" data-src="{{ image.src | img_url: '1000x' }}">
+            {%- render 'image-lazy', image: image, alt: image.alt -%}
+          </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="slide_product_slick_right full-img">
+        {%- assign img_url = 'CPAP_Placeholder2x.jpg' | asset_img_url: 'master' -%}
+        <div class="img_show product-single__photo-wrapper js">
+          <div
+               class="product-single__photo"
+               data-image-id="{{ image.id }}">
+            <img
+                 class="feature-row__image {{ img_class }} lazyload{% unless featured_image == image %} lazypreload{% endunless %}"
+                 src="{{ 'CPAP_Placeholder2x.jpg' | asset_img_url: 'master' }}"
+                 data-src="{{ 'CPAP_Placeholder2x.jpg' | asset_img_url: 'master' }}"
+                 data-widths="[180, 360, 540, 720, 900, 1080, 1296, 1512, 1728, 2048]"
+                 data-aspectratio="{{ image.aspect_ratio }}"
+                 data-sizes="auto"
+                 tabindex="-1"
+                 alt="{{ image.alt | escape }}">
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+
+    <div class="grid__item_right grid__item {{ product_description_width }}">
+      <div class="product-single__meta">
+        <div class="display_ondesktop">
+          <p class="product-single_sku">SKU: {{ product.variants.first.sku }}</p>
+          <h1 class="product-single__title">{{ product.title }}</h1>
+          <div class="product__price">
+            {% include 'product-price-custom-product', variant: current_variant %}
+          </div>
+
+      <!-- TrustBox widget - Product Mini -->
+      <div class="trustpilot-widget" data-locale="en-US" data-template-id="54d39695764ea907c0f34825" data-businessunit-id="5a9fb3f0d2916f0001353e51" data-style-height="24px" data-style-width="100%" data-theme="light" data-sku="{{ product.variants.first.sku }}" data-no-reviews="hide" data-scroll-to-list="true">
+      <a href="https://www.trustpilot.com/review/cpapvictoria.com.au" target="_blank" rel="noopener">Trustpilot</a>
+      </div>
+      <!-- End TrustBox widget -->
+
+        </div>
+        {% if product.metafields.accentuate.proof_of_therapy %}
+        <div class="proof btn-full">
+          <i class="fas fa-info-circle"></i>
+          <p>Proof of therapy required to purchase</p>
+          {% include 'therapy-box-popup' %}
+        </div>
+        {% endif %}
+        <span class="availability_status total-qty-{{ total }}">
+          Availability: 
+          {% if product.available %}
+            {% if total <= 5 and total > 0 %}
+            <span class="inf">Low Stock</span>
+            {% else %}
+            <span class="inf">In Stock</span>
+            {% endif %}
+          {% else %}
+            <span class="inf">Out of Stock</span>
+          {% endif %}
+        </span>
+        {% if product.metafields.accentuate.short_description != "" %}
+        <div class="product_short_desktop">
+          {{ product.metafields.accentuate.short_description }} <a href="#product_content"> More Info</a>
+        </div>
+        {% endif %}
+        {%- if shop.taxes_included or shop.shipping_policy.body != blank -%}
+        <div class="product__policies rte">
+          {%- if shop.taxes_included -%}
+          {{ 'products.product.include_taxes' | t }}
+          {%- endif -%}
+          {%- if shop.shipping_policy.body != blank -%}
+          {{ 'products.product.shipping_policy_html' | t: link: shop.shipping_policy.url }}
+          {%- endif -%}
+        </div>
+        {%- endif -%}
+
+        {% capture "form_classes" -%}
+        product-form product-form-{{ section.id }}{% unless section.settings.show_variant_labels %} product-form--hide-variant-labels{% endunless %}{% if section.settings.enable_payment_button and product.has_only_default_variant%} product-form--payment-button-no-variants{% endif %} clearfix
+        {%- endcapture %}
+
+        {% form 'product', product, class:form_classes, novalidate: 'novalidate', data-product-form: '', data-product-form-redirect-url: '/cart' %}
+        {% unless product.has_only_default_variant %}
+        {% for option in product.options_with_values %}
+        <div class="selector-wrapper js product-form__item">
+          <label {% if option.name == 'default' %}class="label--hidden" {% endif %}for="SingleOptionSelector-{{ forloop.index0 }}">
+            {{ option.name }}
+          </label>
+          <select class="single-option-selector single-option-selector-{{ section.id }} product-form__input" id="SingleOptionSelector-{{ forloop.index0 }}" data-index="option{{ forloop.index }}">
+            <option value="">Please select</option>
+            {% for value in option.values %}
+            {% unless value contains "% off)" %}
+              <option value="{{ value | escape }}">{{ value }}</option>
+            {% endunless %}
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+        {% endunless %}
+        <span class="mw-product-options"></span>
+        <select name="id" id="ProductSelect-{{ section.id }}" class="product-form__variants no-js">
+          {% for variant in product.variants %}
+          {% if variant.available %}
+          <option value="{{ variant.id }}">{{ variant.title }}</option>
+          {% else %}
+          <option disabled="disabled">{{ variant.title }} - {{ 'products.product.sold_out' | t }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+        <div class="product-options" style="width: 100%;">
+          <span class="mw-product-options"></span>
+        </div>
+        <div class="tottal_price_config">
+          {%- assign price = current_variant.price -%}
+          {%- assign compare_at_price = current_variant.compare_at_price -%}
+          <div class="meg-h4">Total price</div>
+          <p data-value="{{ price }}" data-price-change="{{ price }}" class="productPrice"><span id="MobileProductPrice">{{ price | money }}</span></p>
+        </div>
+
+        <div class="wrap-product-form__item {% unless product.available %}soldout{% endunless %}">
+          {% if section.settings.show_quantity_selector %}
+          <div class="product-form__item product-form__item--quantity">
+            <span class="minus_quanty"></span>
+            <input type="number" id="Quantity-{{ section.id }}" name="quantity" value="1" min="1" class="product-form__input" pattern="[0-9]*" data-quantity-input>
+            <span class="plus_quanty"></span>
+          </div>
+          {% endif %}
+
+          <div class="product-form__item product-form__item--submit{% if section.settings.enable_payment_button %} product-form__item--payment-button{% endif %}{% if product.has_only_default_variant %} product-form__item--no-variants{% endif %}">
+            <button id="AddToCart" onclick="dataLayer.push({'event': 'Add-To-Cart'});" type="submit" name="add" {% unless product.has_only_default_variant %} disabled="disabled" {% endunless %}class="btn product-form__cart-submit{% if section.settings.enable_payment_button %} btn--secondary-accent{% endif %}">
+              <span data-add-to-cart-text>
+                {% unless current_variant.available %}
+                {{ 'products.product.sold_out' | t }}
+                {% else %}
+                {% if product.has_only_default_variant %} Add to cart {% else %}Please select{% endif %}
+                {% endunless %}
+              </span>
+            </button>
+            <div id="sticky_addToCart"></div>
+          </div>
+        </div>
+
+        {% if section.settings.enable_payment_button %}
+        {{ form | payment_button }}
+        {% endif %}
+
+        <div class="product-form__error-message-wrapper product-form__error-message-wrapper--hidden" data-error-message-wrapper role="alert">
+          {% include 'icon-error' %} <span class="product-form__error-message" data-error-message>{{ 'products.product.quantity_minimum_message' | t }}</span>
+        </div>
+        {% endform %}
+        <div id="hulkapps_custom_options_{{ product.id }}"> </div>
+        <div class="sca-fg-cat-list" style="display:none;" name="secomapp-fg-data-{{ product.id }}"></div>
+
+        {% if product.metafields.accentuate.proofoftherapy %}
+        <!-- <div class="proof btn-full">
+<i class="fas fa-info-circle"></i>
+{{ product.metafields.accentuate.proofoftherapy }}
+{% include 'therapy-box-popup' %}
+</div> -->
+        {% endif %}
+        
+        {% if product.metafields.gift_card.gift_card %}
+        <div class="gift_card_product btn-full">
+          <i class="fas fa-gift"></i>
+          {{ product.metafields.gift_card.gift_card }}
+        </div>
+        {% endif %}
+        {% if product.metafields.block_info.block_info %}
+        <div class="block_info btn-full">
+          {{ product.metafields.block_info.block_info }}
+        </div>
+        {% endif %}
+        {% if product.metafields.discount2.discount2 %}
+        <div class="discount_option btn-full">
+          <i class="fas fa-fire"></i>
+          {{ product.metafields.discount2.discount2 }}
+        </div>
+        {% endif %}
+      </div>
+
+      {%- comment -%}
+      Live region for announcing updated price and availability to screen readers
+      {%- endcomment -%}
+      <div class="payment-options">
+        <div class="zippay payment">
+          <div><img class="zippaylogo" width="54" src="{{ 'zipfoot.svg' | asset_url }}" alt=""/>
+            Own it, interest free from $10 per week. <a href="#">Info</a></div>
+          <div class="overlay"><!-- Zip WIDGET -->
+            {%include 'zip-widget'%}
+            <!-- end Zip WIDGET -->
+            <div class="widget-product-calc">
+              <span data-zm-widget="tagline" data-zm-info="true"
+                    class="zip-widget__wrapper zip-widget__wrapper--display-tagline">
+                <div class="zip-widget zip-widget__tagline" title="Zip - Own it now, Pay later">
+                <img class="logo" src="https://static.zipmoney.com.au/logo/90px/zip.png">
+                </div>
+              </span>
+            </div>
+          </div>
+        </div>
+        {% render 'humm' %}
+        {% include 'afterpay' %}
+      </div>
+<p class="visually-hidden" data-product-status
+   aria-live="polite"
+   role="status"
+   ></p>
+
+
+{% if section.settings.show_share_buttons %}
+{% include 'social-sharing', share_title: product.title, share_permalink: product.url, share_image: product %}
+{% endif %}
+</div>
+</div>
+{% assign _pTags = product.tags | handle %}
+  {% if _pTags contains 'heated-tube'
+  or _pTags contains 'automatic-climate-control'
+  or _pTags contains 'epr'
+  or _pTags contains 'supporting-consumer-app-available-blue-tooth-data-transfer-to-mobile-app'
+  or _pTags contains 'wi-fi-data-recording-to-sleep-care-providers'
+  or _pTags contains '12-24-volt-compatible'
+  or _pTags contains 'detachable-humidifier'
+  or _pTags contains 'compatible-with-all-cpap-masks-types-and-brands'
+  or _pTags contains 'adjustable-ramp-function'
+  or _pTags contains 'sound-output-in-dbs'
+  or _pTags contains 'washable-filters'
+  or _pTags contains 'auto-start'
+  %}
+  <div class="product-feature">
+    <div class="page-width">
+      <p class="heading">Features</p>
+      <div class="feature-container">
+        {% if _pTags contains 'heated-tube'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'climate-line-heated-tubing.png' | asset_url }}" />
+            </div>
+            <span class="title">Heated Tube</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'automatic-climate-control'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'automatic-climate-control.png' | asset_url }}" />
+            </div>
+            <span class="title">Automatic climate control</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'epr'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'epr.png' | asset_url }}" />
+            </div>
+            <span class="title">Exhalation Relief</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'supporting-consumer-app-available-blue-tooth-data-transfer-to-mobile-app'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'app-compatbile.png' | asset_url }}" />
+            </div>
+            <span class="title">App Compatbile</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains '12-24-volt-compatible'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ '12-24-volt-compatible.png' | asset_url }}" />
+            </div>
+            <span class="title">12/24 Volt Compatible</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'detachable-humidifier'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'detachable-humidifier.png' | asset_url }}" />
+            </div>
+            <span class="title">Detachable humidifier</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'compatible-with-all-cpap-masks-types-and-brands'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'compatible-with-all-cpap-masks-types-and-brands.png' | asset_url }}" />
+            </div>
+            <span class="title">Compatible with all mask brands</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'wi-fi-data-recording-to-sleep-care-providers'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'wi-fi-data-recording.png' | asset_url }}" />
+            </div>
+            <span class="title">Wifi Data Recording</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'adjustable-ramp-function'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'adjustable-ramp-function.png' | asset_url }}" />
+            </div>
+            <span class="title">Adjustable Ramp Function</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'sound-output-in-dbs'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'sound-output-in-dbs.png' | asset_url }}" />
+            </div>
+            <span class="title">Sound Outpout</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'washable-filters'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'washable-filters.png' | asset_url }}" />
+            </div>
+            <span class="title">Washable Filters</span>
+          </div>
+        {% endif %}
+
+        {% if _pTags contains 'auto-start'%}
+          <div class="feature-item">
+            <div class="image">
+              <img class="lazyload" src="{{ 'auto-start.png' | asset_url }}" />
+            </div>
+            <span class="title">Auto Start</span>
+          </div>
+        {% endif %}
+
+      </div>
+      <p class="view-detail-link">
+        <a href="#product_content">View Product Details</a>
+      </p>
+    </div>
+  </div>
+  {% endif %}
+<div class="product_content_des">
+  {% assign videos = product.metafields.accentuate.product_video %}
+  {% assign product_documents = product.metafields.accentuate.product_document %}
+  {% assign documents = product_documents | remove: '["' | remove: '"]' | split: "," %}
+  <div class="product_content" id="product_content">
+    <div class="page-width">
+      <div class="display_ondesktop tab_product">
+        <ul class="list_tab clearfix">
+          <li class="tab_item active"><a href="#" data-tab="details">Details</a></li>
+          <li class="tab_item"><a href="#" data-tab="reviews">Reviews</a></li>
+          <li class="tab_item"><a href="#" data-tab="how-to-order">How to order</a></li>
+          {% if videos != blank %}
+          <li class="tab_item"><a href="#" data-tab="video">Video</a></li>
+          {% endif %}
+          {% if documents != blank %}
+          <li class="tab_item"><a href="#" data-tab="document">Downloads</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      <div class="content_product">
+        <div id="detail-btn" class="display_onmobile active meg-h4" data-tab="details">Details<i class="fas fa-chevron-down"></i></div>
+        <div id="details" class="content_item clearfix details_content active" data-content="details">
+          {{ product.description }}
+        </div>
+        <div class="display_onmobile meg-h4" data-tab="reviews">Reviews<i class="fas fa-chevron-down"></i></div>
+        <div class="content_item clearfix reviews_content" data-content="reviews">
+
+        <!-- TrustBox widget - Product Reviews MultiSource SEO -->
+        <div class="trustpilot-widget" data-locale="en-US" data-template-id="5763bccae0a06d08e809ecbb" data-businessunit-id="5a9fb3f0d2916f0001353e51" data-style-height="700px" data-style-width="100%" data-theme="light" data-stars="1,2,3,4,5" data-sku="{{ product.variants.first.sku }}" data-name="{{ product.title }}" data-review-languages="en" data-no-reviews="hide" data-scroll-to-list="true" data-allow-robots="true">
+          <a href="https://www.trustpilot.com/review/cpapvictoria.com.au" target="_blank" rel="noopener">Trustpilot</a>
+        </div>
+        <!-- End TrustBox widget -->
+        </div>
+        <div class="display_onmobile meg-h4" data-tab="how-to-order">How to order<i class="fas fa-chevron-down"></i></div>
+        <div class="content_item clearfix how-to-order_content" data-content="how-to-order">
+          <div>
+            <p>
+              {{ section.settings.content-tab }}
+            </p>
+          </div>
+        </div>
+        {% if videos != blank %}
+        <h4 class="display_onmobile" data-tab="video">Video<i class="fas fa-chevron-down"></i></h4>
+        <div class="content_item clearfix video" data-content="video">
+          <iframe width="100%" height="633" src="{{videos}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        {% endif %}
+
+              <!--           Megantic -->
+          {% if video-yt != blank %}
+          <h4 class="display_onmobile" data-tab="video">Video<i class="fas fa-chevron-down"></i></h4>
+          <div class="content_item clearfix video" data-content="video">
+          <iframe width="100%" height="633" src="https://www.youtube.com/embed/{{ product.metafields.global.youtube-video-1 }}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+        {% endif %}
+        <!--           Megantic -->
+
+        {% if documents != blank %}
+        <h4 class="display_onmobile" data-tab="document">Download<i class="fas fa-chevron-down"></i></h4>
+        <div class="content_item clearfix document" data-content="document">
+          {% for document in documents %}
+          {% assign document_name = document | remove: 'https://cdn.shopify.com' | split: "/" %}
+          <a class="download-item" href="{{ document }}"><i class="far fa-file-pdf"></i>{{ document_name.last }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="hide">
+    {{ product.metafields.accentuate.product_upsell }}
+  </div>
+</div>
+</div>
+<script>
+  $(document).ready(function () {
+    function caculationHeight(){
+        var arrElm = $('.feature-item .title');
+        var arrHeight = new Array();
+        arrElm.each(function(){
+          arrHeight.push($(this).height());
+        });
+        var maxHeight = Math.max.apply(Math,arrHeight);
+        arrElm.each(function(){
+          $(this).css("min-height", maxHeight);
+        });
+      }
+    setTimeout(function () {
+      caculationHeight();
+    }, 500);
+    $(window).resize(function () {
+      setTimeout(function () {
+        caculationHeight();
+    }, 500);
+    });
+	var numItems = $('.feature-container .feature-item').length;
+	console.log(numItems);
+	if($(window).width() >= 992){
+		if(numItems >= 7){
+			$('.feature-container').addClass('owl-carousel');
+			$('.feature-container').owlCarousel({
+				dots: false,
+				nav: false,
+				margin: 24,
+				autoplay: true,
+				items: 7,
+				autoplayTimeout:200000,
+			})
+		}
+	}
+	if(768 >= $(window).width() <= 991){
+		if(numItems >= 5){
+			$('.feature-container').addClass('owl-carousel');
+			$('.feature-container').owlCarousel({
+				dots: false,
+				nav: false,
+				margin: 24,
+				autoplay: true,
+				items: 5,
+				autoplayTimeout:200000,
+			})
+		}
+	}
+	if ($(window).width() <= 767){
+		if(numItems >= 3){
+			$('.feature-container').addClass('owl-carousel');
+			$('.feature-container').owlCarousel({
+				dots: false,
+				nav: false,
+				margin: 16,
+				autoplay: true,
+				items: 3,
+				autoplayTimeout:200000,
+			})
+		}
+	}
+	
+    // if(numItems >= 7){
+		// $('.feature-container').addClass('owl-carousel');
+  		// $('.feature-container').owlCarousel({
+        //       dots: false,
+        //       nav: false,
+        //       margin: 24,
+        //       autoplay: true,
+        //       items: 7,
+        //       autoplayTimeout:200000,
+        //       navText: ['<i class="fas fa-chevron-left"></i>','<i class="fas fa-chevron-right"></i>'],
+        //       responsive:{
+        //         0:{
+        //           items: 3,
+        //           margin: 16,
+        //           nav: true,
+        //         },
+        //         768:{
+        //           items: 5
+        //         },
+        //         992:{
+        //           items: 7
+        //         }
+        //       }
+      	// })
+	// }
+	// if()
+  });
+  
+</script>
+{% unless product == empty %}
+<script type="application/json" id="ProductJson-{{ section.id }}">
+    {{ product | json }}
+</script>
+{% endunless %}
+<style>
+  #hulkapps_option_list_{{product.id}}{
+    padding: 0;
+  }
+  #hulkapps_options_{{product.id}}{
+    margin: 0;
+  }
+  #hulkapps_option_list_{{product.id}} input[type='checkbox']{
+    display: none !important;
+  }
+</style>
+
+{% schema %}
+{
+"name": {
+"de": "Produktseiten",
+"en": "Product pages",
+"es": "Páginas de productos",
+"fr": "Pages de produits",
+"it": "Pagine di prodotto",
+"ja": "商品ページ",
+"nl": "Productpagina's",
+"pt-BR": "Páginas de produtos",
+"zh-CN": "产品页面",
+"zh-TW": "產品頁面"
+},
+"settings": [
+{
+"type": "select",
+"id": "image_size",
+"label": {
+"de": "Foto-Größe",
+"en": "Image size",
+"es": "Tamaño de la imagen",
+"fr": "Taille des images",
+"it": "Dimensione immagine",
+"ja": "画像のサイズ",
+"nl": "Afbeeldingsformaat",
+"pt-BR": "Tamanho da imagem",
+"zh-CN": "图片尺寸",
+"zh-TW": "圖片尺寸"
+},
+"options": [
+{
+"value": "small",
+"label": {
+"de": "Klein",
+"en": "Small",
+"es": "Pequeña",
+"fr": "Petite",
+"it": "Piccolo",
+"ja": "小",
+"nl": "Klein",
+"pt-BR": "Pequeno",
+"zh-CN": "小",
+"zh-TW": "小型"
+}
+},
+{
+"value": "medium",
+"label": {
+"de": "Mittel",
+"en": "Medium",
+"es": "Mediana",
+"fr": "Moyenne",
+"it": "Medio",
+"ja": "中",
+"nl": "Gemiddeld",
+"pt-BR": "Médio",
+"zh-CN": "中等",
+"zh-TW": "中等"
+}
+},
+{
+"value": "large",
+"label": {
+"de": "Groß",
+"en": "Large",
+"es": "Grande",
+"fr": "Grande",
+"it": "Grande",
+"ja": "大",
+"nl": "Groot",
+"pt-BR": "Grande",
+"zh-CN": "大",
+"zh-TW": "大型"
+}
+},
+{
+"value": "full",
+"label": {
+"de": "Volle Breite",
+"en": "Full-width",
+"es": "Ancho completo",
+"fr": "Pleine largeur",
+"it": "Intera larghezza",
+"ja": "全幅",
+"nl": "Volledige breedte",
+"pt-BR": "Largura completa",
+"zh-CN": "全宽",
+"zh-TW": "完整寬度"
+}
+}
+],
+"default": "medium"
+},
+{
+"type": "checkbox",
+"id": "show_quantity_selector",
+"label": {
+"de": "Quantitäts-Auswahl anzeigen",
+"en": "Show quantity selector",
+"es": "Mostrar selector de cantidad",
+"fr": "Afficher le sélecteur de quantité",
+"it": "Mostra selettore quantità",
+"ja": "数量セレクターを表示する",
+"nl": "Hoeveelheidskiezer weergeven",
+"pt-BR": "Exibir seletor de quantidade",
+"zh-CN": "显示数量选择器",
+"zh-TW": "顯示數量選擇器"
+},
+"default": false
+},
+{
+"type": "checkbox",
+"id": "show_variant_labels",
+"label": {
+"de": "Varianten-Etiketten anzeigen",
+"en": "Show variant labels",
+"es": "Mostrar etiquetas de variantes",
+"fr": "Afficher le nom des variantes",
+"it": "Mostra etichette varianti",
+"ja": "バリエーションのラベルを表示する",
+"nl": "Variantlabels weergeven",
+"pt-BR": "Exibir etiquetas de variantes",
+"zh-CN": "显示多属性标签",
+"zh-TW": "顯示子類選項標籤"
+},
+"default": true
+},
+{
+"type": "checkbox",
+"id": "show_vendor",
+"label": {
+"de": "Lieferanten anzeigen",
+"en": "Show vendor",
+"es": "Mostrar proveedor",
+"fr": "Afficher les vendeurs",
+"it": "Mostra fornitore",
+"ja": "販売元を表示する",
+"nl": "Leverancier weergeven",
+"pt-BR": "Exibir fornecedor",
+"zh-CN": "显示厂商",
+"zh-TW": "顯示廠商"
+},
+"default": false
+},
+{
+"type": "checkbox",
+"id": "enable_zoom",
+"label": {
+"de": "Foto-Zoom zulassen",
+"en": "Enable image zoom",
+"es": "Habilitar zoom de imagen",
+"fr": "Activer le zoom d'image",
+"it": "Abilita lo zoom dell'immagine",
+"ja": "画像ズームを有効にする",
+"nl": "Inzoomen op afbeelding inschakelen",
+"pt-BR": "Ativar o zoom da imagem",
+"zh-CN": "启用图片缩放",
+"zh-TW": "啟用圖片縮放"
+},
+"default": true
+},
+{
+"type": "checkbox",
+"id": "enable_payment_button",
+"label": {
+"de": "Dynamischen Checkout Button anzeigen",
+"en": "Show dynamic checkout button",
+"es": "Mostrar botón de pago dinámico",
+"fr": "Afficher le bouton de passage à la caisse dynamique",
+"it": "Mostra pulsante di check-out dinamico",
+"ja": "ダイナミックチェックアウトボタンを表示する",
+"nl": "Dynamische checkout knop weergeven",
+"pt-BR": "Exibir botão dinâmico de finalização da compra",
+"zh-CN": "显示动态结账按钮",
+"zh-TW": "顯示動態結帳按鈕"
+},
+"info": {
+"de": "Jeder Kunde sieht seine bevorzugte Zahlungsmethode aus den in Ihrem Shop verfügbaren Zahlungsmethoden wie PayPal oder Apple Pay. [Mehr Infos](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"en": "Each customer will see their preferred payment method from those available on your store, such as PayPal or Apple Pay. [Learn more](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"es": "Cada cliente verá su forma de pago preferida entre las disponibles en tu tienda, como PayPal o Apple Pay. [Más información](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"fr": "Chaque client verra son moyen de paiement préféré parmi ceux qui sont proposés sur votre boutique, tels que PayPal ou Apple Pay. [En savoir plus](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"it": "Ogni cliente vedrà il suo metodo di pagamento preferito tra quelli disponibili nel tuo negozio, come PayPal o Apple Pay. [Maggiori informazioni](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"ja": "PayPalやApple Payなど、ストアで利用可能な希望の決済方法がお客様に表示されます。[もっと詳しく](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"nl": "Elke klant ziet zijn of haar beschikbare voorkeursmethode om af te rekenen, zoals PayPal of Apple Pay. [Meer informatie](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"pt-BR": "Cada cliente verá seu método de pagamento preferido dentre os disponíveis na loja, como PayPal ou Apple Pay. [Saiba mais](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"zh-CN": "每位客户都可在您商店提供的付款方式中看到他们的首选付款方式，例如 PayPal 或 Apple Pay。[了解详细信息](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)",
+"zh-TW": "每位客戶都可以在您商店內開放使用的付款方式中看見他們偏好使用的方式，如 PayPal、Apple Pay 等。[深入瞭解相關資訊](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)"
+},
+"default": true
+},
+{
+"type": "checkbox",
+"id": "show_share_buttons",
+"label": {
+"de": "Buttons für Social Media anzeigen",
+"en": "Show social sharing buttons",
+"es": "Mostrar botones para compartir en redes sociales",
+"fr": "Affichez les boutons de partage sur les médias sociaux",
+"it": "Mostra i pulsanti per la condivisione sui social",
+"ja": "ソーシャル共有ボタンを表示する",
+"nl": "Knoppen voor sociaal delen weergeven",
+"pt-BR": "Exibir botões de compartilhamento em redes sociais",
+"zh-CN": "显示社交分享按钮",
+"zh-TW": "顯示社群分享按鈕"
+},
+"default": true
+},
+{
+"type": "header",
+"content":"Content tab How to order"
+},
+{
+"type": "textarea",
+"id" : "content-tab",
+"label": "Content Tab"
+},
+{
+"type": "header",
+"content": "Block 1"
+},
+{
+"type": "text",
+"id": "icon1",
+"label": "Icon",
+"default": "fal fa-phone"
+},
+{
+"type": "text",
+"id": "title1",
+"label": "Title",
+"default": "1300 750 006"
+},
+{
+"type": "html",
+"id": "text1",
+"label": "Content",
+"default": "<p>Mon-Fri 9am-6pm AEST</p><p>Sat 10am-3pm AEST</p>"
+},
+{
+"type": "header",
+"content": "Block 2"
+},
+{
+"type": "text",
+"id": "icon2",
+"label": "Icon",
+"default": "fal fa-location-arrow"
+},
+{
+"type": "text",
+"id": "title2",
+"label": "Title",
+"default": "Visit us in store"
+},
+{
+"type": "html",
+"id": "text2",
+"label": "Content",
+"default": "<p>Come see us in person!</p>"
+},
+{
+"type": "url",
+"id": "link2",
+"label": "Link"
+},
+{
+"type": "header",
+"content": "Block 3"
+},
+{
+"type": "text",
+"id": "icon3",
+"label": "Icon",
+"default": "fal fa-headset"
+},
+{
+"type": "text",
+"id": "title3",
+"label": "Title",
+"default": "Chat with us"
+},
+{
+"type": "html",
+"id": "text3",
+"label": "Content",
+"default": "<p>Mon-Fri 9am-10pm AEST</p><p>Sat-Sun 10am-5pm AEST</p>"
+},
+{
+"type": "header",
+"content": "Block 4"
+},
+{
+"type": "text",
+"id": "icon4",
+"label": "Icon",
+"default": "fal fa-tag"
+},
+{
+"type": "text",
+"id": "title4",
+"label": "Title",
+"default": "Found it cheaper?"
+},
+{
+"type": "html",
+"id": "text4",
+"label": "Content",
+"default": "<p>We will match it!</p>"
+},
+{
+"type": "url",
+"id": "link4",
+"label": "Link"
+}
+]
+}
+{% endschema %}
